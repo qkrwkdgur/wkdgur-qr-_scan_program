@@ -2,25 +2,160 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>한신대 QR 프로그램</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한신대 QR 매니지먼트 시스템</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; }
-        #reader { width: 500px; margin: 0 auto; }
-        .btn { padding: 10px 20px; margin: 10px; font-size: 16px; cursor: pointer; }
-        .delete-mode { background-color: #ff4d4d; color: white; }
-        .scan-mode { background-color: #4CAF50; color: white; }
+        /* 공학적 느낌의 다크 테마 및 배경 디자인 */
+        body { 
+            font-family: 'Courier New', Courier, monospace, sans-serif; 
+            background-color: #0b0f19; 
+            color: #00ff66; 
+            text-align: center; 
+            padding: 20px;
+            margin: 0;
+            /* 테크니컬한 격자(Grid) 배경 효과 */
+            background-image: 
+                linear-gradient(rgba(0, 255, 102, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 102, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0, 255, 102, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #00d2ff;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+
+        #mode-text { 
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            padding: 10px;
+            border: 1px solid #00ff66;
+            display: inline-block;
+            background: rgba(0, 255, 102, 0.05);
+            box-shadow: inset 0 0 10px rgba(0, 255, 102, 0.2);
+            margin-bottom: 20px;
+        }
+        
+        /* 메인 제어 버튼 스타일 (크기 확대 및 네온 효과) */
+        .btn { 
+            padding: 18px 36px; 
+            margin: 10px; 
+            font-size: 20px; 
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer; 
+            border: 2px solid;
+            border-radius: 4px;
+            background-color: transparent;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .scan-mode { 
+            color: #00ff66;
+            border-color: #00ff66;
+        }
+        .scan-mode:hover {
+            background-color: #00ff66;
+            color: #0b0f19;
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.6);
+        }
+
+        .delete-mode { 
+            color: #ff3333; 
+            border-color: #ff3333;
+        }
+        .delete-mode:hover {
+            background-color: #ff3333;
+            color: #0b0f19;
+            box-shadow: 0 0 20px rgba(255, 51, 51, 0.6);
+        }
+
+        .download-btn {
+            color: #00d2ff;
+            border-color: #00d2ff;
+        }
+        .download-btn:hover {
+            background-color: #00d2ff;
+            color: #0b0f19;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.6);
+        }
+
+        /* 라이브러리 내부 스캔 시작/종료 버튼 크기 강제 확대 */
+        #reader button {
+            padding: 14px 28px !important;
+            font-size: 18px !important;
+            background-color: #00d2ff !important;
+            color: #0b0f19 !important;
+            border: none !important;
+            border-radius: 4px !important;
+            font-weight: bold !important;
+            cursor: pointer !important;
+            margin: 10px 0 !important;
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.5) !important;
+        }
+        #reader button:hover {
+            background-color: #00ff66 !important;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.7) !important;
+        }
+
+        /* QR 카메라 영역 스타일 */
+        #reader { 
+            width: 100%;
+            max-width: 550px; 
+            margin: 20px auto; 
+            border: 2px solid #00d2ff !important;
+            background: rgba(11, 15, 25, 0.8);
+            box-shadow: 0 0 25px rgba(0, 210, 255, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* 스캔 박스 내부 텍스트 컬러 조정 */
+        #reader th, #reader td, #reader span, #reader a {
+            color: #00d2ff !important;
+        }
+
+        .status-panel {
+            margin-top: 25px;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+        #qr-count {
+            color: #00ff66;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
     </style>
 </head>
 <body>
 
-    <h1>한신대 QR 프로그램 (Web v1.0)</h1>
-    <h2 id="mode-text" style="color: green;">MODE: SCAN / REGISTER</h2>
+    <h1>Hanshin QR System</h1>
+    <div class="subtitle">SYS_STATUS: OPERATIONAL</div>
     
-    <button id="toggle-btn" class="btn scan-mode" onclick="toggleMode()">삭제 모드로 전환 (F키)</button>
+    <div id="mode-text">MODE: SCAN / REGISTER</div>
+    
+    <div>
+        <button id="toggle-btn" class="btn scan-mode" onclick="toggleMode()">삭제 모드로 전환 (F키)</button>
+        <button class="btn download-btn" onclick="downloadQRDatabase()">데이터 다운로드 (.txt)</button>
+    </div>
     
     <div id="reader"></div>
-    <p>현재 저장된 QR 개수: <span id="qr-count">0</span>개</p>
+    
+    <div class="status-panel">
+        DATABASE_RECORD_COUNT: <span id="qr-count">0</span>
+    </div>
 
     <script>
         let deleteMode = false;
@@ -37,15 +172,41 @@
             
             if (deleteMode) {
                 modeText.innerText = "MODE: DELETE";
-                modeText.style.color = "red";
+                modeText.style.color = "#ff3333";
+                modeText.style.borderColor = "#ff3333";
+                modeText.style.boxShadow = "inset 0 0 10px rgba(255, 51, 51, 0.2)";
                 btn.innerText = "스캔/등록 모드로 전환";
                 btn.className = "btn delete-mode";
             } else {
                 modeText.innerText = "MODE: SCAN / REGISTER";
-                modeText.style.color = "green";
-                btn.innerText = "삭제 모드로 전환";
+                modeText.style.color = "#00ff66";
+                modeText.style.borderColor = "#00ff66";
+                modeText.style.boxShadow = "inset 0 0 10px rgba(0, 255, 102, 0.2)";
+                btn.innerText = "삭제 모드로 전환 (F키)";
                 btn.className = "btn scan-mode";
             }
+        }
+
+        // 데이터 다운로드 기능 (기존 파이썬의 txt 파일 형태로 내보내기)
+        function downloadQRDatabase() {
+            if (qrDatabase.length === 0) {
+                alert("다운로드할 QR 데이터가 없습니다.");
+                return;
+            }
+            
+            // 배열 요소를 줄바꿈(\n)으로 구분하여 텍스트 생성
+            const textContent = qrDatabase.join("\n") + "\n";
+            const blob = new Blob([textContent], { type: "text/plain;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            
+            // 임시 다운로드 링크 생성 및 클릭
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", "qr_database.txt");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         // 키보드 'f' 키를 누르면 모드 전환
@@ -57,28 +218,27 @@
 
         // QR 코드 인식 성공 시 실행되는 함수
         function onScanSuccess(decodedText, decodedResult) {
-            // 연속 인식 방지를 위해 일시 정지 로직이 필요할 수 있습니다.
             if (deleteMode) {
                 if (qrDatabase.includes(decodedText)) {
                     qrDatabase = qrDatabase.filter(item => item !== decodedText);
                     localStorage.setItem("qr_database", JSON.stringify(qrDatabase));
-                    alert(`삭제되었습니다: ${decodedText}`);
+                    alert(`[삭제 완료] ${decodedText}`);
                 } else {
-                    alert(`유효하지 않은 QR입니다: ${decodedText}`);
+                    alert(`[오류] 존재하지 않는 QR입니다: ${decodedText}`);
                 }
             } else {
                 if (qrDatabase.includes(decodedText)) {
-                    alert(`이미 등록된 QR코드입니다: ${decodedText}`);
+                    alert(`[중복] 이미 등록된 QR코드입니다: ${decodedText}`);
                 } else {
                     qrDatabase.push(decodedText);
                     localStorage.setItem("qr_database", JSON.stringify(qrDatabase));
-                    alert(`새로운 QR코드가 저장되었습니다: ${decodedText}`);
+                    alert(`[등록 완료] 새로운 QR코드 저장: ${decodedText}`);
                 }
             }
             updateCount();
         }
 
-        // 웹캠 스캐너 시작
+        // 웹캠 스캐너 시작 및 환경 설정
         const html5QrcodeScanner = new Html5QrcodeScanner(
             "reader", { fps: 10, qrbox: 250 }
         );
