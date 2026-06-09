@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>한신대 QR 프로그램</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
+        #reader { width: 500px; margin: 0 auto; }
+        .btn { padding: 10px 20px; margin: 10px; font-size: 16px; cursor: pointer; }
+        .delete-mode { background-color: #ff4d4d; color: white; }
+        .scan-mode { background-color: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+
+    <h1>한신대 QR 프로그램 (Web v1.0)</h1>
+    <h2 id="mode-text" style="color: green;">MODE: SCAN / REGISTER</h2>
+    
+    <button id="toggle-btn" class="btn scan-mode" onclick="toggleMode()">삭제 모드로 전환 (F키)</button>
+    
+    <div id="reader"></div>
+    <p>현재 저장된 QR 개수: <span id="qr-count">0</span>개</p>
+
+    <script>
+        let deleteMode = false;
+        let qrDatabase = JSON.parse(localStorage.getItem("qr_database")) || [];
+
+        function updateCount() {
+            document.getElementById("qr-count").innerText = qrDatabase.length;
+        }
+
+        function toggleMode() {
+            deleteMode = !deleteMode;
+            const modeText = document.getElementById("mode-text");
+            const btn = document.getElementById("toggle-btn");
+            
+            if (deleteMode) {
+                modeText.innerText = "MODE: DELETE";
+                modeText.style.color = "red";
+                btn.innerText = "스캔/등록 모드로 전환";
+                btn.className = "btn delete-mode";
+            } else {
+                modeText.innerText = "MODE: SCAN / REGISTER";
+                modeText.style.color = "green";
+                btn.innerText = "삭제 모드로 전환";
+                btn.className = "btn scan-mode";
+            }
+        }
+
+        // 키보드 'f' 키를 누르면 모드 전환
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'f' || e.key === 'F') {
+                toggleMode();
+            }
+        });
+
+        // QR 코드 인식 성공 시 실행되는 함수
+        function onScanSuccess(decodedText, decodedResult) {
+            // 연속 인식 방지를 위해 일시 정지 로직이 필요할 수 있습니다.
+            if (deleteMode) {
+                if (qrDatabase.includes(decodedText)) {
+                    qrDatabase = qrDatabase.filter(item => item !== decodedText);
+                    localStorage.setItem("qr_database", JSON.stringify(qrDatabase));
+                    alert(`삭제되었습니다: ${decodedText}`);
+                } else {
+                    alert(`유효하지 않은 QR입니다: ${decodedText}`);
+                }
+            } else {
+                if (qrDatabase.includes(decodedText)) {
+                    alert(`이미 등록된 QR코드입니다: ${decodedText}`);
+                } else {
+                    qrDatabase.push(decodedText);
+                    localStorage.setItem("qr_database", JSON.stringify(qrDatabase));
+                    alert(`새로운 QR코드가 저장되었습니다: ${decodedText}`);
+                }
+            }
+            updateCount();
+        }
+
+        // 웹캠 스캐너 시작
+        const html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", { fps: 10, qrbox: 250 }
+        );
+        html5QrcodeScanner.render(onScanSuccess);
+        updateCount();
+    </script>
+</body>
+</html>
