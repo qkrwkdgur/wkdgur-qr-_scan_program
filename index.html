@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>한신대 QR 매니지먼트 시스템</title>
+    <title>QR SCAN PROGRAM</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         /* 공학적 느낌의 다크 테마 및 배경 디자인 */
@@ -141,7 +141,7 @@
 </head>
 <body>
 
-    <h1>Hanshin QR System</h1>
+    <h1>QR SCAN PROGRAM</h1>
     <div class="subtitle">SYS_STATUS: OPERATIONAL</div>
     
     <div id="mode-text">MODE: SCAN / REGISTER</div>
@@ -159,7 +159,10 @@
 
     <script>
         let deleteMode = false;
-        let qrDatabase = JSON.parse(localStorage.getItem("qr_database")) || [];
+        
+        // 요구사항 반영: 기존 저장되어 있던 QR 코드를 강제로 비우고 시작하도록 빈 배열 선언
+        localStorage.removeItem("qr_database"); 
+        let qrDatabase = [];
 
         function updateCount() {
             document.getElementById("qr-count").innerText = qrDatabase.length;
@@ -187,19 +190,17 @@
             }
         }
 
-        // 데이터 다운로드 기능 (기존 파이썬의 txt 파일 형태로 내보내기)
+        // 데이터 다운로드 기능
         function downloadQRDatabase() {
             if (qrDatabase.length === 0) {
                 alert("다운로드할 QR 데이터가 없습니다.");
                 return;
             }
             
-            // 배열 요소를 줄바꿈(\n)으로 구분하여 텍스트 생성
             const textContent = qrDatabase.join("\n") + "\n";
             const blob = new Blob([textContent], { type: "text/plain;charset=utf-8;" });
             const url = URL.createObjectURL(blob);
             
-            // 임시 다운로드 링크 생성 및 클릭
             const link = document.createElement("a");
             link.href = url;
             link.setAttribute("download", "qr_database.txt");
@@ -209,14 +210,14 @@
             URL.revokeObjectURL(url);
         }
 
-        // 키보드 'f' 키를 누르면 모드 전환
+        // 키보드 'f' 키 모드 전환
         window.addEventListener('keydown', (e) => {
             if (e.key === 'f' || e.key === 'F') {
                 toggleMode();
             }
         });
 
-        // QR 코드 인식 성공 시 실행되는 함수
+        // QR 코드 인식 성공 함수
         function onScanSuccess(decodedText, decodedResult) {
             if (deleteMode) {
                 if (qrDatabase.includes(decodedText)) {
@@ -238,7 +239,7 @@
             updateCount();
         }
 
-        // 웹캠 스캐너 시작 및 환경 설정
+        // 웹캠 스캐너 시작
         const html5QrcodeScanner = new Html5QrcodeScanner(
             "reader", { fps: 10, qrbox: 250 }
         );
