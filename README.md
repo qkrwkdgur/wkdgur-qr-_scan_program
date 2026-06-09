@@ -22,4 +22,9 @@
 ---
 
 ## 🚀 실행 방법 (Getting Started)
+프로젝트를 로컬 환경에서 올바르게 구동하기 위해 아래 순서대로 진행해 주세요.
 
+### 1. 깃허브 저장소에서 qr 프로그램.py를 다운로드
+### 2. 윈도우 검색창에서 터미널을 킨다.
+### 3. 터미널에서 pip install pyzbar 와 pip install opencv-python을 입력한다
+### 4. 파이썬 idle에서 qr 프로그램.py를 열고 실행한다.
